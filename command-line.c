@@ -1,13 +1,30 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/wait.h>
-#include <sys/types.h>
-#include <errno.h>
+#include "shell.h"
+
+extern int setenv_cmd(const char *variable, const char *value);
+extern int unsetenv_cmd(const char *variable);
 
 #define MAX_ARGS 64
 #define MAX_INPUT_SIZE 1024
+
+/**
+ * tokenize_command - Tokenize a command string into args
+ * @command: The command string to be tokenized
+ * @args: Array to store
+ */
+void tokenize_command(char *command, char *args[])
+{
+char *token;
+int j = 0;
+
+token = strtok(command, " ");
+
+while (token != NULL)
+{
+args[j++] = token;
+token = strtok(NULL, " ");
+}
+args[j] = NULL;
+}
 
 /**
  * execute_child - Execute the child process
@@ -15,6 +32,9 @@
  */
 void execute_child(char *args[])
 {
+char **child_env = environ;
+setenv("CUSTOM_ENV_VAR", "custom_value", 1);
+
 if (execvp(args[0], args) == -1)
 {
 perror("execvp");
@@ -23,7 +43,7 @@ exit(EXIT_FAILURE);
 }
 
 /**
- * execute_single_command - Execute a single command with arguments
+ * execute_single_command - Execute a single command
  * @command: Command to be executed
  */
 void execute_single_command(char *command)
@@ -88,6 +108,6 @@ commands[a] = NULL;
 
 for (b = 0; b < a; b++)
 {
-execute_single_command(commands[b]);
+execute_single_command(commands[j]);
 }
 }

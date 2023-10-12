@@ -1,100 +1,59 @@
 #include "shell.h"
 
 /**
- * is_executable - determines if a file is an executable command
- * @info: the info struct
- * @file_path: path to the file
- *
- * Return: 1 if true (executable), 0 otherwise
+ * executeCommand - Execute a command with arguments
+ * @command: The command to be executed
  */
-int is_executable(info_t *info, char *file_path)
+void executeCommand(char *command) 
 {
-struct stat st;
 
-(void)info;
-if (!file_path || stat(file_path, &st))
-return (0);
+char *path = getenv("PATH");
+char *path_copy = strdup(path);
+char *dir = strtok(path_copy, ":");
+int found = 0;
 
-if (st.st_mode & S_IFREG)
+while (dir != NULL) 
 {
-return (1);
+char full_path[1024];
+snprintf(full_path, sizeof(full_path), "%s/%s", dir, command);
+
+if (access(full_path, X_OK) == 0) 
+{
+found = 1;
+pid_t pid = fork();
+if (pid == -1) 
+{
+perror("fork");
+exit(EXIT_FAILURE);
+} 
+else if (pid == 0) 
+{
+char *args[] = {full_path, NULL};
+execve(full_path, args, NULL);
+perror("execve");
+exit(EXIT_FAILURE);
 }
-return (0);
+else 
+{
+
+ int status;
+waitpid(pid, &status, 0);
+if (WIFEXITED(status) && WEXITSTATUS(status) != 0) 
+{
+fprintf(stderr, "custom_shell: %s: 
+Exit status %d\n", command, WEXITSTATUS(status));
+}
+break;  
+}
+}
+dir = strtok(NULL, ":");
 }
 
-/**
- * extract_substring - duplicates characters from a string within a range
- * @source_str: the source string
- * @start_idx: starting index
- * @end_idx: ending index
- *
- * Return: pointer to the duplicated substring
- */
-char *extract_substring(char *source_str,
-int start_idx, int end_idx)
-{
-static char buffer[1024];
-int i = 0, k = 0;
+free(path_copy);
 
-for (k = 0, i = start_idx; i < end_idx; i++)
+if (!found) 
 {
-if (source_str[i] != ':')
-{
-buffer[k++] = source_str[i];
+fprintf(stderr, "custom_shell: %s: 
+Command not found in PATH\n", command);
 }
-}
-buffer[k] = '\0';
-return (buffer);
-}
-
-/**
- * find_executable_in_path - finds an executable in the PATH variable
- * @info: the info struct
- * @path_var: the PATH variable string
- * @command: the command to find
- *
- * Return: full path to the command if found, or NULL if not found
- */
-char *find_executable_in_path(info_t *info,
-char *path_var, char *command)
-{
-int i = 0, current_pos = 0;
-char *full_path;
-
-if (!path_var)
-return (NULL);
-if ((_strlen(command) > 2) && starts_with(command, "./"))
-{
-if (is_executable(info, command))
-{
-return (command);
-}
-}
-while (1)
-{
-if (!path_var[i] || path_var[i] == ':')
-{
-full_path = extract_substring(path_var, current_pos, i);
-if (!*full_path)
-{
-_strcat(full_path, command);
-}
-else
-{
-_strcat(full_path, "/");
-_strcat(full_path, command);
-}
-if (is_executable(info, full_path))
-{
-return (full_path);
-}
-if (!path_var[i])
-{
-break;
-}
-current_pos = i;
-}
-i++;
-}
-return (NULL);
 }

@@ -8,6 +8,6 @@
  */
 void handleExit(void)
 {
-printf("Exiting the custom shell.\n");
-exit(EXIT_SUCCESS);
+
+exit(0);
 }

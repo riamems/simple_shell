@@ -1,3 +1,10 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/wait.h>
+#include <sys/types.h>
+#include <errno.h>
 #include "shell.h"
 
 extern int setenv_cmd(const char *variable, const char *value);
@@ -14,16 +21,16 @@ extern int unsetenv_cmd(const char *variable);
 void tokenize_command(char *command, char *args[])
 {
 char *token;
-int j = 0;
+int b = 0;
 
 token = strtok(command, " ");
 
 while (token != NULL)
 {
-args[j++] = token;
+args[b++] = token;
 token = strtok(NULL, " ");
 }
-args[j] = NULL;
+args[b] = NULL;
 }
 
 /**
@@ -32,8 +39,6 @@ args[j] = NULL;
  */
 void execute_child(char *args[])
 {
-char **child_env = environ;
-setenv("CUSTOM_ENV_VAR", "custom_value", 1);
 
 if (execvp(args[0], args) == -1)
 {
@@ -85,6 +90,7 @@ fprintf(stderr, "custom_shell: %s: Exit status %d\n", args[0], exit_status);
  */
 void executeCommand(char *command)
 {
+{
 char *commands[MAX_ARGS];
 char *token;
 int a = 0;
@@ -108,6 +114,7 @@ commands[a] = NULL;
 
 for (b = 0; b < a; b++)
 {
-execute_single_command(commands[j]);
+execute_single_command(commands[b]);
+}
 }
 }

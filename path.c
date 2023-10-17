@@ -1,59 +1,47 @@
+#include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include "shell.h"
-
 /**
- * executeCommand - Execute a command with arguments
- * @command: The command to be executed
+ * executeCommandWithPath - Execute command with a given path
+ * @command: Command to execute
+ * @args: Array of argumentsfor the command
+ * @environ: The environment variables to use
  */
-void executeCommand(char *command) 
+
+void executeCommandWithPath(char *command, char
+		*const args[], char *const environ[])
 {
-
 char *path = getenv("PATH");
-char *path_copy = strdup(path);
-char *dir = strtok(path_copy, ":");
-int found = 0;
+char *path_cpy = strdup(path);
+char *dir = strtok(path_cpy, ":");
 
-while (dir != NULL) 
+if (path == NULL)
+{
+perror("getenv");
+return;
+}
+
+if (path_cpy == NULL)
+{
+perror("strdup");
+return;
+}
+
+while (dir != NULL)
 {
 char full_path[1024];
+
 snprintf(full_path, sizeof(full_path), "%s/%s", dir, command);
 
-if (access(full_path, X_OK) == 0) 
+if (access(full_path, X_OK) == 0)
 {
-found = 1;
-pid_t pid = fork();
-if (pid == -1) 
-{
-perror("fork");
-exit(EXIT_FAILURE);
-} 
-else if (pid == 0) 
-{
-char *args[] = {full_path, NULL};
-execve(full_path, args, NULL);
+execve(full_path, args, environ);
 perror("execve");
-exit(EXIT_FAILURE);
-}
-else 
-{
-
- int status;
-waitpid(pid, &status, 0);
-if (WIFEXITED(status) && WEXITSTATUS(status) != 0) 
-{
-fprintf(stderr, "custom_shell: %s: 
-Exit status %d\n", command, WEXITSTATUS(status));
-}
-break;  
-}
 }
 dir = strtok(NULL, ":");
 }
-
-free(path_copy);
-
-if (!found) 
-{
-fprintf(stderr, "custom_shell: %s: 
-Command not found in PATH\n", command);
-}
+free(path_cpy);
 }

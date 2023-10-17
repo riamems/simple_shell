@@ -1,13 +1,11 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <string.h>
 #include "shell.h"
 
-
+#define MAX_INPUT_SIZE 1024
 /**
- * handleExit - Handle the "exit" built-in command to exit the shell
+ * exit_shell - Handle the "exit" built-in command to exit the shell
  */
-void handleExit(void)
+void exit_shell(void) 
 {
-
 exit(0);
 }

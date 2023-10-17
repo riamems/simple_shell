@@ -12,7 +12,7 @@ void tokenizecommand(char *command, char *args[]);
 void executechild(char *args[]);
 void execute_command(char *command);
 void executeCommandWithPath(char *command, char *const args[], char *const environ[]);
-void handleExit(void);
+void exit_shell(void) ;
 void handleEnv(void);
 
 
